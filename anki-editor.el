@@ -422,6 +422,7 @@ The implementation is borrowed and simplified from ox-html."
 
 (defun anki-editor--export-string (src fmt)
   "Export string SRC and format it if FMT."
+  (setq src (replace-regexp-in-string "@\\(.*?\\)@" "@@html:<mark>\\1</mark>@@" src))
   (cl-ecase fmt
     ('nil src)
     ('t (or (org-export-string-as src
