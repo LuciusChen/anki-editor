@@ -1426,7 +1426,31 @@ note or deck."
                                (substring css end))))
            finally do (message "Resetting styles...Done")))
 
-
+(defun anki-editor-html-breaks ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp)) ; 直到文件结束
+      (if (looking-at "^#\\+begin_export")
+          ;; 跳过 #+begin_export 和 #+end_export 之间的内容
+          (search-forward "#+end_export" nil t)
+        (let ((next-line-is-heading (save-excursion
+                                      (forward-line 1)
+                                      (looking-at "^\\*+ \\(.*\\)$")))
+              (next-line-is-empty (save-excursion
+                                    (forward-line 1)
+                                    (looking-at "^[[:space:]]*$"))))
+          (if (and (not (looking-at "^\\*+ \\(.*\\)$")) ; 当前行不是标题
+                   (not next-line-is-heading)           ; 下一行不是标题
+                   (not next-line-is-empty)             ; 下一行不是空白行
+                   (not (looking-at "^:\\([^:]+\\):"))  ; 当前行不是以 ::包裹的字段 开头的
+                   (not (looking-at "^#.*"))            ; 当前行不是以 # 开头的
+                   (not (looking-at-p ".*\\\\$")) ; 当前行未结束于 \\
+                   (not (looking-at "^[[:space:]]*$"))) ; 当前行不是空白行
+              (progn
+                (end-of-line)
+                (insert " \\\\")))
+          (forward-line 1))))))
 (provide 'anki-editor)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
